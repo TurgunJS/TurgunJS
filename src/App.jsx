@@ -1,55 +1,56 @@
-import { useState, useEffect } from "react";
-import CarList from "./CarList";
+import React, { useState, useEffect } from "react";
+import "./App.css";
+import axios from "axios";
+const MoData = 'https://api.sampleapis.com/rickandmorty/characters';
 
-import MOCK_DATA from './MOCK_DATA.json';
-
-const filterCars = (searchText, listOfCars) => {
-  if (!searchText) {
-    return listOfCars;
-  }
-  return listOfCars.filter(({ car_model }) =>
-    car_model.toLowerCase().includes(searchText.toLowerCase())
-  );
-}
-const data = MOCK_DATA;
+// import { useSort, useSortObject } from './utils';
 
 function App() {
-
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [carList, setCarList] = useState(data);
-
+  const [loading, setLoading] = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [searchTitle, setSearchTitle] = useState("");
 
   useEffect(() => {
-    const Debounce = setTimeout(() => {
-      const filteredCars = filterCars(searchTerm, data);
-      setCarList(filteredCars);
-    }, 300);
+    const loadPosts = async () => {
+      setLoading(true);
+      const response = await axios.get(
+       MoData
+      );
+      setPosts(response.data);
+      setLoading(false);
+    };
 
-    return () => clearTimeout(Debounce);
-  }, [searchTerm]);
-
+    loadPosts();
+  }, []);
 
 
   return (
-    <div className="container mx-auto font-mono">
-      <div className="text-3xl text-center py-3">Живой Поиск</div>
-      <div className="flex justify-center flex-col align-middle">
-        <input
-          autoFocus
-          type="text"
-          autoComplete="off"
-          placeholder="Поиск машины по модели"
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-100 text-stone-900 placeholder:italic placeholder:text-slate-400 block bg-white border border-slate-300 rounded-sm py-2 px-3 shadow-lg focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm mx-auto"
-          srtyle={{
-            width: '600px',
-          }}
-        />
-        <CarList carList={carList} />
-      </div>
+    <div className="App">
+      <h3>Search Filter</h3>
+      <input
+        type="text"
+        placeholder="Search..."
+        onChange={(e) => setSearchTitle(e.target.value)}
+      />
+      {loading ? (
+        <h4>Loading ...</h4>
+      ) : (
+        posts
+          .filter((value) => {
+            if (searchTitle === "") {
+              return value;
+            } else if (
+              value.name.toLowerCase().includes(searchTitle.toLowerCase())
+            ) {
+              return value;
+            }
+          })
+          .map((item) => <h5 key={item.id}>{item.name}</h5>)
+      )}
+
     </div>
   );
 }
 
 export default App;
+
